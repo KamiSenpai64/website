@@ -18,7 +18,7 @@ from datetime import datetime
 # ============================================================================
 # Get your free API key from: https://console.curseforge.com/
 # Replace 'YOUR_API_KEY_HERE' with your actual API key
-API_KEY = 'YOUR_API_KEY_HERE'
+API_KEY = '$2a$10$Mrl/5CyzVVVGD9MCa9oUNeQV1C2DyeH5ZMKjXEwpplDRHaeQZkIJaE'
 
 # ============================================================================
 # CONSTANTS
