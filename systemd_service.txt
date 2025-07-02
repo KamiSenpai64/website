@@ -1,0 +1,27 @@
+[Unit]
+Description=Minecraft Server Status Dashboard
+Documentation=https://github.com/yourusername/minecraft-server-status
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/minecraft-status
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=10
+KillMode=process
+TimeoutSec=300
+SyslogIdentifier=minecraft-status
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/ubuntu/minecraft-status
+
+[Install]
+WantedBy=multi-user.target

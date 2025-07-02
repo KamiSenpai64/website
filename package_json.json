@@ -1,0 +1,32 @@
+{
+  "name": "minecraft-server-status",
+  "version": "1.0.0",
+  "description": "Minecraft server status dashboard for Daniel's servers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "install-deps": "npm install",
+    "setup": "npm install && mkdir -p public && cp index.html public/"
+  },
+  "keywords": [
+    "minecraft",
+    "server",
+    "status",
+    "dashboard",
+    "nodejs"
+  ],
+  "author": "Daniel Miulet",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "mcping-js": "^1.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
