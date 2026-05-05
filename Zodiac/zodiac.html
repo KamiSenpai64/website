@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zodiac – Astro Tarot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --midnight: #0a0612; --deep-violet: #1a0a2e; --royal-purple: #2d1155;
+      --mystic: #6b21a8; --gold: #d4a843; --gold-light: #f0c96a;
+      --starwhite: #f5f0ff; --rose: #c084fc;
+      --font-display: 'Cinzel Decorative', serif;
+      --font-body: 'Cormorant Garamond', serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--midnight); color: var(--starwhite); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 500;
+      background: rgba(10,6,18,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(212,168,67,0.2);
+      display: flex; gap: 32px; justify-content: center;
+      padding: 16px 24px; font-family: var(--font-display);
+      font-size: 0.6rem; letter-spacing: 0.2em; flex-wrap: wrap;
+    }
+    nav a { color: var(--rose); text-decoration: none; transition: color 0.2s; }
+    nav a:hover, nav a.active { color: var(--gold-light); }
+
+    .hero {
+      padding: 140px 24px 60px;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(107,33,168,0.4) 0%, transparent 70%);
+    }
+    .hero h1 {
+      font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 3.5rem);
+      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--rose));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+    }
+    .hero p { color: rgba(245,240,255,0.65); font-style: italic; font-size: 1.1rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .card {
+      border: 1px solid rgba(212,168,67,0.25);
+      border-radius: 18px;
+      padding: 36px 20px 28px;
+      background: rgba(45,17,85,0.35);
+      backdrop-filter: blur(10px);
+      text-decoration: none;
+      color: var(--starwhite);
+      text-align: center;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,168,67,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card:hover { transform: translateY(-8px); border-color: var(--gold); box-shadow: 0 20px 50px rgba(107,33,168,0.3); background: rgba(45,17,85,0.55); }
+
+    .glyph { font-size: 3rem; margin-bottom: 14px; filter: drop-shadow(0 0 8px rgba(212,168,67,0.5)); }
+    .sign-name { font-family: var(--font-display); font-size: 0.75rem; color: var(--gold-light); letter-spacing: 0.1em; margin-bottom: 6px; }
+    .sign-dates { font-size: 0.82rem; color: rgba(245,240,255,0.5); font-style: italic; margin-bottom: 12px; }
+    .sign-element {
+      display: inline-block;
+      font-size: 0.72rem; letter-spacing: 0.12em;
+      padding: 4px 14px; border-radius: 20px;
+      border: 1px solid rgba(192,132,252,0.3);
+      color: var(--rose);
+    }
+
+    footer { text-align: center; padding: 32px 24px; border-top: 1px solid rgba(212,168,67,0.12); font-size: 0.82rem; color: rgba(245,240,255,0.3); font-family: var(--font-display); letter-spacing: 0.1em; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/index.html">✦ Acasă</a>
+  <a href="/videos.html">▶ Videos</a>
+  <a href="/zodiac/zodiac.html" class="active">♈ Zodiac</a>
+  <a href="../mesaj.html">✨ Mesaj</a>
+  <a href="../index.html#lectura">🎴 Lectură</a>
+  <a href="../index.html#despre">🌙 Despre</a>
+</nav>
+
+<div class="hero">
+  <h1>Semnele Zodiacului</h1>
+  <p>Alege zodia ta și descoperă înțelepciunea stelelor</p>
+</div>
+
+<div class="grid">
+  <a class="card" href="berbec.html"><div class="glyph">♈</div><div class="sign-name">Berbec</div><div class="sign-dates">21 Mar – 19 Apr</div><div class="sign-element">🔥 Foc</div></a>
+  <a class="card" href="taur.html"><div class="glyph">♉</div><div class="sign-name">Taur</div><div class="sign-dates">20 Apr – 20 Mai</div><div class="sign-element">🌍 Pământ</div></a>
+  <a class="card" href="gemeni.html"><div class="glyph">♊</div><div class="sign-name">Gemeni</div><div class="sign-dates">21 Mai – 20 Iun</div><div class="sign-element">💨 Aer</div></a>
+  <a class="card" href="rac.html"><div class="glyph">♋</div><div class="sign-name">Rac</div><div class="sign-dates">21 Iun – 22 Iul</div><div class="sign-element">💧 Apă</div></a>
+  <a class="card" href="leu.html"><div class="glyph">♌</div><div class="sign-name">Leu</div><div class="sign-dates">23 Iul – 22 Aug</div><div class="sign-element">🔥 Foc</div></a>
+  <a class="card" href="fecioara.html"><div class="glyph">♍</div><div class="sign-name">Fecioară</div><div class="sign-dates">23 Aug – 22 Sep</div><div class="sign-element">🌍 Pământ</div></a>
+  <a class="card" href="balanta.html"><div class="glyph">♎</div><div class="sign-name">Balanță</div><div class="sign-dates">23 Sep – 22 Oct</div><div class="sign-element">💨 Aer</div></a>
+  <a class="card" href="scorpion.html"><div class="glyph">♏</div><div class="sign-name">Scorpion</div><div class="sign-dates">23 Oct – 21 Nov</div><div class="sign-element">💧 Apă</div></a>
+  <a class="card" href="sagetator.html"><div class="glyph">♐</div><div class="sign-name">Săgetător</div><div class="sign-dates">22 Nov – 21 Dec</div><div class="sign-element">🔥 Foc</div></a>
+  <a class="card" href="capricorn.html"><div class="glyph">♑</div><div class="sign-name">Capricorn</div><div class="sign-dates">22 Dec – 19 Ian</div><div class="sign-element">🌍 Pământ</div></a>
+  <a class="card" href="varsator.html"><div class="glyph">♒</div><div class="sign-name">Vărsător</div><div class="sign-dates">20 Ian – 18 Feb</div><div class="sign-element">💨 Aer</div></a>
+  <a class="card" href="pesti.html"><div class="glyph">♓</div><div class="sign-name">Pești</div><div class="sign-dates">19 Feb – 20 Mar</div><div class="sign-element">💧 Apă</div></a>
+</div>
+
+<footer>✦ Astro Tarot ✦</footer>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mesajul Zilei - Astro Tarot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+  
+  <style>
+    :root {
+      --midnight: #0a0612;
+      --deep-violet: #1a0a2e;
+      --mystic: #6b21a8;
+      --gold: #d4a843;
+      --gold-light: #f0c96a;
+      --rose: #c084fc;
+      --font-display: 'Cinzel Decorative', serif;
+      --font-body: 'Cormorant Garamond', serif;
+    }
+
+    body {
+      background: var(--midnight);
+      color: white;
+      font-family: var(--font-body);
+      margin: 0;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #stars-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* --- NAV --- */
+    nav {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 500;
+      background: rgba(10,6,18,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(212,168,67,0.2);
+      display: flex; gap: 24px; justify-content: center;
+      padding: 16px 24px; font-family: var(--font-display);
+      font-size: 0.6rem; letter-spacing: 0.2em; flex-wrap: wrap;
+    }
+    nav a { color: var(--rose); text-decoration: none; transition: 0.3s; }
+    nav a:hover { color: var(--gold-light); }
+
+    /* --- CONTAINER --- */
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+      margin-top: 112px;
+      text-align: center;
+      padding: 18px 20px 26px;
+      max-width: 520px;
+    }
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 5vw, 2.3rem);
+      background: linear-gradient(90deg, var(--gold-light), var(--rose));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    /* --- TAROT CARD 3D --- */
+    .tarot-draw-container {
+      perspective: 1000px;
+      width: 190px;
+      height: 312px;
+      margin: 24px auto 18px;
+      cursor: pointer;
+    }
+
+    .tarot-card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+    }
+
+    .tarot-card.flipped { transform: rotateY(180deg); cursor: default; }
+
+    .tarot-card-front, .tarot-card-back {
+      position: absolute;
+      width: 100%; height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      border: 2px solid var(--gold);
+      overflow: hidden;
+    }
+
+    /* Spatele cărții (ce vede userul prima dată) */
+    .tarot-card-front {
+      background: linear-gradient(135deg, var(--deep-violet), var(--midnight));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-pattern {
+      width: 80%;
+      height: 90%;
+      border: 1px solid rgba(212,168,67,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: var(--gold);
+      opacity: 0.5;
+    }
+
+    /* Fața cărții (imaginea dezvăluită) */
+    .tarot-card-back {
+      background: var(--midnight);
+      transform: rotateY(180deg);
+      position: relative;
+    }
+
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-name-overlay {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 20px 10px 10px;
+      background: linear-gradient(to top, rgba(10,6,18,0.95), transparent);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      color: var(--gold-light);
+      letter-spacing: 1px;
+    }
+
+    /* --- MESSAGE --- */
+    #message-box {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: 0.8s ease;
+      margin-top: 14px;
+    }
+
+    #message-box.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .interpretation {
+      font-size: 1.12rem;
+      line-height: 1.45;
+      color: var(--gold-pale);
+      font-style: italic;
+    }
+
+    .btn-refresh {
+      margin-top: 18px;
+      background: none;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 10px 22px;
+      font-family: var(--font-display);
+      cursor: pointer;
+      border-radius: 50px;
+      transition: 0.3s;
+    }
+
+    .btn-refresh:hover { background: var(--gold); color: var(--midnight); }
+
+    @media (max-width: 760px) {
+      .content-wrapper {
+        margin-top: 126px;
+        max-width: 440px;
+        padding: 14px 14px 24px;
+      }
+
+      .tarot-draw-container {
+        width: 160px;
+        height: 264px;
+        margin: 16px auto 12px;
+      }
+
+      .card-pattern {
+        font-size: 2.2rem;
+      }
+
+      .card-name-overlay {
+        padding: 14px 8px 8px;
+        font-size: 0.7rem;
+      }
+
+      .interpretation {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+
+      .btn-refresh {
+        margin-top: 14px;
+        width: 100%;
+        max-width: 260px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/index.html" style="color: var(--gold-light)">✦ Acasă</a>
+    <a href="/pages/videos/index.html">▶ Videos</a>
+    <a href="/zodiac/zodiac.html">♈ Zodiac</a>
+    <a href="/pages/messages/index.html">✨ Mesaj</a>
+    <a href="/index.html#lectura">🎴 Lectură</a>
+    <a href="/index.html#despre">🌙 Despre</a>
+  </nav>
+
+  <canvas id="stars-canvas"></canvas>
+
+  <div class="content-wrapper">
+    <h1 class="page-title">Mesajul Universului</h1>
+    <p>Concentrează-te pe o întrebare și întoarce cartea.</p>
+
+    <div class="tarot-draw-container" onclick="revealCard()">
+      <div class="tarot-card" id="tarotCard">
+        <div class="tarot-card-front">
+          <div class="card-pattern">✨</div>
+        </div>
+        <div class="tarot-card-back" id="cardResult">
+          </div>
+      </div>
+    </div>
+
+    <div id="message-box">
+      <p class="interpretation" id="cardDescription"></p>
+      <button class="btn-refresh" onclick="location.reload()">O altă extragere</button>
+    </div>
+  </div>
+
+  <script>
+    const deck = [
+      { name: "Soarele", text: "Bucurie absolută și claritate. Urmează o perioadă plină de succes și vitalitate." },
+      { name: "Eremitul", text: "Este timpul să te retragi în liniște. Răspunsul se află în interiorul tău, nu în afară." },
+      { name: "Steaua", text: "Speranța este călăuza ta. Universul îți trimite vindecare și inspirație divină." },
+      { name: "Luna", text: "Fii atent la intuiție și vise. Nu tot ce pare real este adevărat în acest moment." },
+      { name: "Magicianul", text: "Ai toate resursele necesare pentru a reuși. Manifestă-ți dorințele cu încredere." },
+      { name: "RoataNorocului", text: "Schimbarea este singura constantă. Norocul este de partea ta, acceptă fluxul vieții." },
+      { name: "Nebunul", text: "Un nou început plin de potențial. Acționează cu curaj, dar fără a ignora riscurile." },
+      { name: "MareaPreoteasa", text: "Intuiția și misterul domină. Ai încredere în ceea ce simți, nu doar în ce vezi." },
+      { name: "Imparateasa", text: "Abundență, creație și grijă. Este momentul să dezvolți și să hrănești ceva important." },
+      { name: "Imparatul", text: "Ordine, control și autoritate. Construiește pe baze solide și stabilește reguli clare." },
+      { name: "Hierofantul", text: "Tradiții și învățături. Caută ghidare în valori consacrate sau într-un mentor." },
+      { name: "Indragostitii", text: "Alegere importantă sau conexiune profundă. Urmează-ți inima, dar cu luciditate." },
+      { name: "Carul", text: "Determinare și progres. Controlul și disciplina te vor duce la victorie." },
+      { name: "Puterea", text: "Putere interioară și răbdare. Blândețea controlează mai mult decât forța brută." },
+      { name: "Spanzuratul", text: "Pauză și perspectivă nouă. Uneori trebuie să renunți pentru a înțelege." },
+      { name: "Moartea", text: "Transformare profundă. Un final necesar pentru a face loc unui nou început." },
+      { name: "Temperanta", text: "Echilibru și armonie. Combină lucrurile cu măsură pentru rezultate optime." },
+      { name: "Diavolul", text: "Atașamente și iluzii. Fii atent la dependențe sau la ce te ține blocat." },
+      { name: "Turnul", text: "Schimbare bruscă și haos. Ce nu e stabil se va prăbuși pentru a face loc adevărului." },
+      { name: "Judecata", text: "Trezire și claritate. Este timpul să îți evaluezi trecutul și să mergi mai departe." },
+      { name: "Lumea", text: "Finalizare și împlinire. Ai ajuns la capătul unui ciclu cu succes." }    
+    ];
+
+    let flipped = false;
+
+    function revealCard() {
+      if (flipped) return;
+      flipped = true;
+
+      const cardData = deck[Math.floor(Math.random() * deck.length)];
+      const cardElement = document.getElementById('tarotCard');
+      const resultElement = document.getElementById('cardResult');
+      const messageBox = document.getElementById('message-box');
+      const description = document.getElementById('cardDescription');
+
+      // Set internal card content (Image from assets/ folder)
+      resultElement.innerHTML = `
+        <img src="assets/${cardData.name}.png" class="card-img" alt="${cardData.name}">
+        <div class="card-name-overlay">${cardData.name.toUpperCase()}</div>
+      `;
+
+      // Flip animation
+      cardElement.classList.add('flipped');
+
+      // Show text with delay
+      setTimeout(() => {
+        description.innerText = cardData.text;
+        messageBox.classList.add('visible');
+      }, 600);
+    }
+
+    // Stars background logic (copy-paste from your index.html or simple version)
+    const canvas = document.getElementById('stars-canvas');
+    const ctx = canvas.getContext('2d');
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const stars = Array.from({ length: 150 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 1.5,
+      speed: Math.random() * 0.5 + 0.2
+    }));
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      stars.forEach(s => {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+        s.y -= s.speed;
+        if (s.y < 0) s.y = canvas.height;
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
