@@ -1,0 +1,47 @@
+# =====================
+# Dependencies
+# =====================
+vendor/
+composer.phar
+
+# =====================
+# Environment / secrets
+# =====================
+.env
+*.log
+*.ini
+
+# =====================
+# OS / Editor junk
+# =====================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =====================
+# Node / JS (if ever used)
+# =====================
+node_modules/
+
+# =====================
+# PHP logs / cache
+# =====================
+*.cache
+*.tmp
+
+# =====================
+# Test / debug files
+# =====================
+test.php
+
+# =====================
+# Local config files
+# =====================
+database_info.txt
+
+# =====================
+# Optional: ignore backup files
+# =====================
+*.bak
+*.swp

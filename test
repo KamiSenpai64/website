@@ -1,0 +1,95 @@
+.
+├── assets
+│   ├── Carul.png
+│   ├── css
+│   │   └── pages
+│   │       └── index.css
+│   ├── Diavolul.png
+│   ├── Eremitul.png
+│   ├── Hierofantul.png
+│   ├── Imparateasa.png
+│   ├── Imparatul.png
+│   ├── Indragostitii.png
+│   ├── Judecata.png
+│   ├── Lumea.png
+│   ├── Luna.png
+│   ├── Magicianul.png
+│   ├── MareaPreoteasa.png
+│   ├── Moartea.png
+│   ├── Nebunul.png
+│   ├── Puterea.png
+│   ├── RoataNorocului.png
+│   ├── Soarele.png
+│   ├── Spanzuratul.png
+│   ├── Steaua.png
+│   ├── Temperanta.png
+│   └── Turnul.png
+├── backend
+│   ├── api_tarot.php
+│   ├── api_videos.php
+│   ├── BookingsAPI.php
+│   ├── Database.php
+│   ├── send_booking.php
+│   ├── TarotAPI.php
+│   ├── VideosAPI.php
+│   └── ZodiacAPI.php
+├── composer.json
+├── composer.lock
+├── database
+│   └── schema.sql
+├── database_info.txt
+├── index.html
+├── js
+│   ├── add-video.ps1
+│   ├── booking.js
+│   ├── main.js
+│   ├── modules
+│   │   ├── animations
+│   │   │   ├── particles.js
+│   │   │   └── stars.js
+│   │   ├── booking
+│   │   │   └── modal.js
+│   │   ├── navigation
+│   │   │   └── zodiacLinks.js
+│   │   └── ui
+│   │       └── scrollReveal.js
+│   ├── videos.json
+│   └── zodiac.json
+├── pages
+│   ├── messages
+│   │   └── index.html
+│   └── videos
+│       └── index.html
+├── test.php
+├── vendor
+│   ├── autoload.php
+│   ├── composer
+│   │   ├── autoload_classmap.php
+│   │   ├── autoload_namespaces.php
+│   │   ├── autoload_psr4.php
+│   │   ├── autoload_real.php
+│   │   ├── autoload_static.php
+│   │   ├── ClassLoader.php
+│   │   ├── installed.json
+│   │   ├── installed.php
+│   │   ├── InstalledVersions.php
+│   │   ├── LICENSE
+│   │   └── platform_check.php
+│   └── phpmailer
+│       └── phpmailer
+└── Zodiac
+    ├── balanta.html
+    ├── berbec.html
+    ├── capricorn.html
+    ├── fecioara.html
+    ├── gemeni.html
+    ├── leu.html
+    ├── pesti.html
+    ├── rac.html
+    ├── sagetator.html
+    ├── scorpion.html
+    ├── taur.html
+    ├── varsator.html
+    └── zodiac.html
+
+19 directories, 73 files
