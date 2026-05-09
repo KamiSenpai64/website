@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Astro Tarot</title>
+  <style>
+    body { margin:0; min-height:100vh; background:#090613; color:#f5f1e6; font-family: Arial, sans-serif; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; background:#110a24; border-bottom:1px solid rgba(255,255,255,.08); }
+    .topbar h1 { margin:0; font-size:1.4rem; color:#f0c96a; }
+    .button { border:none; border-radius:12px; background:#c084fc; color:#110a24; padding:10px 16px; cursor:pointer; }
+    .layout { display:grid; gap:24px; padding:24px; max-width:1200px; margin:0 auto; }
+    .card { background: rgba(24,15,37,.96); border:1px solid rgba(255,255,255,.08); border-radius:22px; padding:22px; }
+    .card h2 { margin-top:0; color:#f0c96a; }
+    .form-row { display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+    .form-row input, .form-row select { width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:#120b27; color:#fff; }
+    .form-row button { grid-column:1/-1; }
+    table { width:100%; border-collapse:collapse; margin-top:18px; }
+    th, td { padding:12px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+    th { color:#c2b1f0; font-weight:700; }
+    td { color:#e9e2d9; }
+    .small-button { border:none; border-radius:10px; padding:8px 12px; font-size:.85rem; cursor:pointer; }
+    .delete { background:#f25a73; color:#fff; }
+    .admin-active { color:#8fd18f; }
+    .message { margin-top:14px; min-height:20px; color:#f4c9b8; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Admin Dashboard</h1>
+    <button class="button" id="logoutButton">Deloghează</button>
+  </div>
+  <div class="layout">
+    <div class="card">
+      <h2>Conturi utilizatori</h2>
+      <div class="form-row">
+        <input id="newEmail" type="email" placeholder="Email nou" />
+        <input id="newName" type="text" placeholder="Nume complet" />
+        <input id="newPassword" type="password" placeholder="Parolă" />
+        <select id="newRole">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button class="button" id="createAccount">Creează cont</button>
+      </div>
+      <div class="message" id="accountMessage"></div>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Email</th><th>Nume</th><th>Rol</th><th>Status</th><th>Acțiuni</th></tr>
+        </thead>
+        <tbody id="accountsTable"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="js/admin.js"></script>
+</body>
+</html>

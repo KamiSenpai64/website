@@ -95,6 +95,23 @@ CREATE TABLE IF NOT EXISTS daily_messages (
     INDEX idx_is_active (is_active)
 ) ENGINE=InnoDB;
 
+-- Accounts table (user login and admin access)
+CREATE TABLE IF NOT EXISTS accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    role ENUM('user', 'admin') DEFAULT 'user',
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+) ENGINE=InnoDB;
+
+INSERT INTO accounts (email, password_hash, name, role, status) VALUES
+('admin@astrotarot.site', '$2y$10$uKbydI3dEjBO1GgWK0AUs.bLiHCMn/OJzJgwszG7/AptqkiOuJlyS', 'Admin Astro Tarot', 'admin', 'active');
+
 -- Website settings table
 CREATE TABLE IF NOT EXISTS settings (
     id INT AUTO_INCREMENT PRIMARY KEY,

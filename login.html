@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Astro Tarot</title>
+  <style>
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; font-family: Arial, sans-serif; background:#100a1f; color:#f7f1e8; }
+    .panel { width: min(420px, calc(100% - 32px)); background: rgba(18,12,34,.96); border: 1px solid rgba(212,168,67,.3); box-shadow: 0 24px 60px rgba(0,0,0,.35); border-radius: 22px; padding: 32px; }
+    h1 { margin:0 0 16px; font-size: 1.75rem; letter-spacing: .08em; text-transform: uppercase; color:#f0c96a; }
+    label { display:block; margin:16px 0 8px; font-size:.9rem; color:#ddd; }
+    input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#1a1327; color:#fff; }
+    button { margin-top: 20px; width:100%; padding: 14px; border:none; border-radius:14px; background:#c084fc; color:#100a1f; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.65; cursor:default; }
+    .message { margin-top: 16px; min-height: 20px; font-size:.95rem; color:#f3c9a7; }
+    .actions { display:flex; justify-content:space-between; gap:12px; margin-top:16px; }
+    .actions a { color:#c084fc; text-decoration:none; font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>Autentificare</h1>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" placeholder="admin@exemplu.ro" />
+    <label for="password">Parolă</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Admin123!" />
+    <button id="loginButton">Conectează-te</button>
+    <div class="message" id="message"></div>
+    <div class="actions">
+      <a href="/index.html">Înapoi la site</a>
+      <a href="/admin.html">Admin</a>
+    </div>
+  </div>
+  <script src="js/login.js"></script>
+</body>
+</html>

@@ -59,8 +59,9 @@ if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
 }
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/BookingsAPI.php';
 
-use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -130,24 +131,84 @@ $safeEmail = htmlspecialchars($email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $safeTime = htmlspecialchars($preferredTime, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $safeNotes = htmlspecialchars($notes, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-$subject = 'Confirmare programare';
-$body = "Buna, {$safeName},\r\n\r\n";
-$body .= "Iti multumesc pentru programare. Cererea ta a fost inregistrata cu succes.\r\n\r\n";
-$body .= "Detalii programare:\r\n";
-$body .= "- Nume: {$safeName}\r\n";
-$body .= "- Email: {$safeEmail}\r\n";
-$body .= "- Ora preferata: {$safeTime}\r\n\r\n";
-
-if ($safeNotes !== '') {
-    $body .= "Intrebarea / intentia ta:\r\n";
-    $body .= "{$safeNotes}\r\n\r\n";
+$bookingId = null;
+try {
+    $bookingsApi = new BookingsAPI();
+    $bookingId = $bookingsApi->createBooking([
+        'name' => $name,
+        'email' => $email,
+        'preferred_time' => $preferredTime,
+        'notes' => $notes,
+        'status' => 'pending',
+        'consultation_date' => null
+    ]);
+} catch (\Exception $exception) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Nu s-a putut salva rezervarea. Incearca din nou mai tarziu.'
+    ]);
+    exit;
 }
 
-$body .= "Voi reveni in curand cu confirmarea finala si toate detaliile necesare.\r\n\r\n";
-$body .= "Multumesc,\r\n";
-$body .= "[Numele tau / Brand]\r\n\r\n";
-$body .= "---\r\n";
-$body .= "Acesta este un email automat. Te rugam sa nu raspunzi direct.\r\n";
+$subject = 'Confirmare rezervare Astro Tarot';
+$htmlBody = '<!DOCTYPE html>' .
+    '<html lang="ro">' .
+    '<head>' .
+    '<meta charset="UTF-8">' .
+    '<title>Confirmare rezervare</title>' .
+    '<style>' .
+    'body { font-family: Arial, sans-serif; color: #333; background: #f3f0eb; margin: 0; padding: 0; }' .
+    '.container { max-width: 620px; margin: 0 auto; padding: 24px; }' .
+    '.card { background: #ffffff; border-radius: 18px; box-shadow: 0 16px 32px rgba(0,0,0,0.08); overflow: hidden; }' .
+    '.card-header { background: #5f2b8a; color: #fff; padding: 28px 24px; text-align: center; }' .
+    '.card-body { padding: 24px; }' .
+    '.details { width: 100%; border-collapse: collapse; margin-top: 18px; }' .
+    '.details td { padding: 10px 0; vertical-align: top; }' .
+    '.details .label { color: #6c4c86; width: 38%; font-weight: 700; }' .
+    '.details .value { color: #444; }' .
+    '.footer { margin-top: 24px; font-size: 0.95rem; color: #6e6b70; }' .
+    '</style>' .
+    '</head>' .
+    '<body>' .
+    '<div class="container">' .
+    '<div class="card">' .
+    '<div class="card-header">' .
+    '<h1>Rezervare primită</h1>' .
+    '<p>Mulțumim pentru încredere, ' . $safeName . '.</p>' .
+    '</div>' .
+    '<div class="card-body">' .
+    '<p>Am înregistrat cererea ta de programare. Vei primi un email de confirmare finală în curând.</p>' .
+    '<table class="details">' .
+    '<tr><td class="label">ID Rezervare</td><td class="value">' . htmlspecialchars((string)$bookingId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td></tr>' .
+    '<tr><td class="label">Nume</td><td class="value">' . $safeName . '</td></tr>' .
+    '<tr><td class="label">Email</td><td class="value">' . $safeEmail . '</td></tr>' .
+    '<tr><td class="label">Ora preferată</td><td class="value">' . $safeTime . '</td></tr>' .
+    '<tr><td class="label">Status</td><td class="value">Pending</td></tr>' .
+    '</table>' .
+    ($safeNotes !== '' ? '<p><strong>Întrebare / intenție:</strong><br>' . nl2br($safeNotes) . '</p>' : '') .
+    '<div class="footer">' .
+    '<p>Pentru orice întrebări, răspunde la acest email sau așteaptă confirmarea noastră.</p>' .
+    '<p>Cu drag,<br>Astro Tarot</p>' .
+    '</div>' .
+    '</div>' .
+    '</div>' .
+    '</div>' .
+    '</body>' .
+    '</html>';
+
+$textBody = "Buna, {$safeName},\r\n\r\n";
+$textBody .= "Am primit cererea ta de programare si am inregistrat detaliile.\r\n\r\n";
+$textBody .= "ID Rezervare: {$bookingId}\r\n";
+$textBody .= "Nume: {$safeName}\r\n";
+$textBody .= "Email: {$safeEmail}\r\n";
+$textBody .= "Ora preferata: {$safeTime}\r\n";
+if ($safeNotes !== '') {
+    $textBody .= "Intrebarea / intentia ta: {$safeNotes}\r\n";
+}
+$textBody .= "\r\nVoi reveni curand cu confirmarea finala.\r\n\r\n";
+$textBody .= "Cu drag,\r\nAstro Tarot\r\n";
+$textBody .= "---\r\nAcesta este un email automat. Te rugam sa nu raspunzi direct.\r\n";
 
 try {
     $mailer = new PHPMailer(true);
@@ -172,11 +233,12 @@ try {
     }
     $mailer->addReplyTo($fromEmail, $fromName);
     $mailer->Subject = $subject;
-    $mailer->Body = $body;
-    $mailer->isHTML(false);
+    $mailer->Body = $htmlBody;
+    $mailer->AltBody = $textBody;
+    $mailer->isHTML(true);
 
     $mailer->send();
-} catch (Exception $exception) {
+} catch (PHPMailerException $exception) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
@@ -186,5 +248,6 @@ try {
 }
 
 echo json_encode([
-    'success' => true
+    'success' => true,
+    'bookingId' => $bookingId
 ]);

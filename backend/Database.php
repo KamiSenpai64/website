@@ -16,6 +16,8 @@ class Database
 
     public function __construct()
     {
+        $this->loadEnvFile(__DIR__ . '/.env');
+
         $this->host = getenv('DB_HOST') ?: 'localhost';
         $this->port = (int)(getenv('DB_PORT') ?: '3306');
         $this->dbname = getenv('DB_NAME') ?: 'astrotarot_db';
@@ -25,26 +27,80 @@ class Database
         $this->connect();
     }
 
+    private function loadEnvFile(string $filePath): void
+    {
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines === false) {
+            return;
+        }
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+                continue;
+            }
+
+            $parts = explode('=', $trimmed, 2);
+            if (count($parts) !== 2) {
+                continue;
+            }
+
+            $key = trim($parts[0]);
+            $value = trim($parts[1]);
+            if ($key === '') {
+                continue;
+            }
+
+            if (
+                (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
+                (str_starts_with($value, "'") && str_ends_with($value, "'"))
+            ) {
+                $value = substr($value, 1, -1);
+            }
+
+            if (getenv($key) === false) {
+                putenv("{$key}={$value}");
+                $_ENV[$key] = $value;
+                $_SERVER[$key] = $value;
+            }
+        }
+    }
+
     /**
      * Establish database connection
      * @throws Exception if connection fails
      */
     private function connect(): void
     {
-        try {
-            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbname};charset=utf8mb4";
-            
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::ATTR_PERSISTENT => true, // Connection pooling
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_romanian_ci"
-            ];
+        $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbname};charset=utf8mb4";
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_PERSISTENT => true, // Connection pooling
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_romanian_ci"
+        ];
 
+        try {
             $this->pdo = new PDO($dsn, $this->username, $this->password, $options);
+            return;
         } catch (PDOException $e) {
-            throw new Exception("Database connection failed: " . $e->getMessage());
+            $message = $e->getMessage();
+            if ($this->host === 'localhost' && str_contains($message, 'No such file or directory')) {
+                try {
+                    $this->host = '127.0.0.1';
+                    $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbname};charset=utf8mb4";
+                    $this->pdo = new PDO($dsn, $this->username, $this->password, $options);
+                    return;
+                } catch (PDOException $fallbackException) {
+                    $message = $fallbackException->getMessage();
+                }
+            }
+            throw new Exception("Database connection failed: " . $message);
         }
     }
 
