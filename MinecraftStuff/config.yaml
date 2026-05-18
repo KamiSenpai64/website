@@ -1,0 +1,19 @@
+# Minecraft Server TUI Configuration
+
+# RCON Connection Settings
+rcon:
+  host: localhost
+  port: 25575
+  password: your_rcon_password
+
+# Server Log Path (for log streaming)
+log_path: /path/to/minecraft/server/logs/latest.log
+
+# Update Intervals (in seconds)
+update_intervals:
+  players: 2
+  tps: 1
+  logs: 0.5
+
+# TUI Theme
+theme: dark
