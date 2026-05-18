@@ -22,20 +22,27 @@ class BookingsAPI
      */
     public function createBooking(array $bookingData): int
     {
-        $sql = "INSERT INTO bookings (name, email, preferred_time, notes, status, consultation_date) 
-                VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO bookings (user_id, name, email, preferred_time, notes, status, consultation_date, booking_date) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
+            $bookingData['user_id'] ?? null,
             $bookingData['name'],
             $bookingData['email'],
             $bookingData['preferred_time'],
             $bookingData['notes'] ?? null,
             $bookingData['status'] ?? 'pending',
-            $bookingData['consultation_date'] ?? null
+            $bookingData['consultation_date'] ?? null,
+            $bookingData['booking_date'] ?? date('Y-m-d')
         ];
 
         $this->db->execute($sql, $params);
-        return (int)$this->db->lastInsertId();
+        $bookingId = (int)$this->db->lastInsertId();
+        
+        // Create time slot entry
+        $this->createTimeSlot($bookingData['preferred_time'], $bookingId, $bookingData['booking_date'] ?? null);
+        
+        return $bookingId;
     }
 
     /**
@@ -296,5 +303,159 @@ class BookingsAPI
         $sql = "SELECT COUNT(*) as count FROM bookings WHERE email = ?";
         $result = $this->db->query($sql, [$email]);
         return (int)$result[0]['count'] > 0;
+    }
+
+    /**
+     * Check if time slot is available (1.5 hour conflict prevention)
+     * @param string $preferredTime Preferred time in HH:MM format
+     * @param string|null $bookingDate Booking date in YYYY-MM-DD format (optional, defaults to today)
+     * @return bool True if time slot is available
+     */
+    public function isTimeSlotAvailable(string $preferredTime, ?string $bookingDate = null): bool
+    {
+        $date = $bookingDate ?? date('Y-m-d');
+        
+        $sql = "SELECT COUNT(*) as count FROM time_slots 
+                WHERE booking_date = ? 
+                AND (
+                    time_slot BETWEEN ? AND ?
+                    OR time_slot BETWEEN ? AND ?
+                )";
+        
+        // Calculate 1.5 hours before and after
+        $time = new DateTime($preferredTime);
+        $timeBefore = (clone $time)->sub(new DateInterval('PT1H30M'));
+        $timeAfter = (clone $time)->add(new DateInterval('PT1H30M'));
+        
+        $params = [
+            $date,
+            $timeBefore->format('H:i:s'),
+            $time->format('H:i:s'),
+            $time->format('H:i:s'),
+            $timeAfter->format('H:i:s')
+        ];
+        
+        $result = $this->db->query($sql, $params);
+        return (int)$result[0]['count'] === 0;
+    }
+
+    /**
+     * Create time slot entry for a booking
+     * @param string $preferredTime Preferred time
+     * @param int $bookingId Booking ID
+     * @param string|null $bookingDate Booking date (optional, defaults to today)
+     * @return bool True if creation was successful
+     */
+    private function createTimeSlot(string $preferredTime, int $bookingId, ?string $bookingDate = null): bool
+    {
+        $date = $bookingDate ?? date('Y-m-d');
+        $sql = "INSERT INTO time_slots (booking_date, time_slot, is_booked, booking_id) 
+                VALUES (?, ?, TRUE, ?)";
+        
+        return $this->db->execute($sql, [$date, $preferredTime, $bookingId]) > 0;
+    }
+
+    /**
+     * Get bookings by user ID
+     * @param int $userId User ID
+     * @return array User's bookings
+     */
+    public function getBookingsByUserId(int $userId): array
+    {
+        $sql = "SELECT * FROM bookings 
+                WHERE user_id = ? 
+                ORDER BY booking_date DESC, preferred_time DESC";
+        return $this->db->query($sql, [$userId]);
+    }
+
+    /**
+     * Get user's past bookings
+     * @param int $userId User ID
+     * @return array Past bookings
+     */
+    public function getPastBookingsByUserId(int $userId): array
+    {
+        $sql = "SELECT * FROM bookings 
+                WHERE user_id = ? AND booking_date < CURDATE()
+                ORDER BY booking_date DESC, preferred_time DESC";
+        return $this->db->query($sql, [$userId]);
+    }
+
+    /**
+     * Get user's current/future bookings
+     * @param int $userId User ID
+     * @return array Current and future bookings
+     */
+    public function getCurrentAndFutureBookingsByUserId(int $userId): array
+    {
+        $sql = "SELECT * FROM bookings 
+                WHERE user_id = ? AND booking_date >= CURDATE()
+                ORDER BY booking_date ASC, preferred_time ASC";
+        return $this->db->query($sql, [$userId]);
+    }
+
+    /**
+     * Delete time slot when booking is deleted
+     * @param int $bookingId Booking ID
+     * @return bool True if deletion was successful
+     */
+    private function deleteTimeSlot(int $bookingId): bool
+    {
+        $sql = "DELETE FROM time_slots WHERE booking_id = ?";
+        return $this->db->execute($sql, [$bookingId]) > 0;
+    }
+
+    /**
+     * Update booking with time slot management
+     * @param int $id Booking ID
+     * @param array $bookingData Updated booking information
+     * @return bool True if update was successful
+     */
+    public function updateBookingWithTimeSlot(int $id, array $bookingData): bool
+    {
+        $this->db->beginTransaction();
+        
+        try {
+            // Delete old time slot
+            $this->deleteTimeSlot($id);
+            
+            // Update booking
+            $updated = $this->updateBooking($id, $bookingData);
+            
+            if ($updated && isset($bookingData['preferred_time'])) {
+                // Create new time slot
+                $this->createTimeSlot($bookingData['preferred_time'], $id);
+            }
+            
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Delete booking with time slot cleanup
+     * @param int $id Booking ID
+     * @return bool True if deletion was successful
+     */
+    public function deleteBookingWithTimeSlot(int $id): bool
+    {
+        $this->db->beginTransaction();
+        
+        try {
+            // Delete time slot
+            $this->deleteTimeSlot($id);
+            
+            // Delete booking
+            $deleted = $this->deleteBooking($id);
+            
+            $this->db->commit();
+            return $deleted;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 }

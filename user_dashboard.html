@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contul Meu - Astro Tarot</title>
+  <style>
+    body { margin:0; min-height:100vh; background:#090613; color:#f5f1e6; font-family: Arial, sans-serif; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; background:#110a24; border-bottom:1px solid rgba(255,255,255,.08); }
+    .topbar h1 { margin:0; font-size:1.4rem; color:#f0c96a; }
+    .user-info { color:#c2b1f0; font-size:0.9rem; }
+    .button { border:none; border-radius:12px; background:#c084fc; color:#110a24; padding:10px 16px; cursor:pointer; transition:background 0.2s; }
+    .button:hover { background:#d4a5ff; }
+    .button:disabled { opacity:.65; cursor:not-allowed; }
+    .danger { background:#f25a73; }
+    .danger:hover { background:#ff7a93; }
+    .layout { display:grid; gap:24px; padding:24px; max-width:1400px; margin:0 auto; }
+    .card { background: rgba(24,15,37,.96); border:1px solid rgba(255,255,255,.08); border-radius:22px; padding:22px; }
+    .card h2 { margin-top:0; color:#f0c96a; font-size:1.3rem; margin-bottom:20px; }
+    .tabs { display:flex; gap:12px; margin-bottom:20px; border-bottom:2px solid rgba(255,255,255,.1); }
+    .tab { padding:12px 20px; background:none; border:none; color:#c2b1f0; cursor:pointer; font-size:1rem; border-bottom:2px solid transparent; transition:all 0.2s; }
+    .tab.active { color:#f0c96a; border-bottom-color:#f0c96a; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    table { width:100%; border-collapse:collapse; margin-top:18px; }
+    th, td { padding:12px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+    th { color:#c2b1f0; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.5px; }
+    td { color:#e9e2d9; font-size:14px; }
+    .status-pending { color:#ffa726; font-weight:600; }
+    .status-confirmed { color:#66bb6a; font-weight:600; }
+    .status-cancelled { color:#ef5350; font-weight:600; }
+    .small-button { border:none; border-radius:10px; padding:8px 12px; font-size:.85rem; cursor:pointer; transition:background 0.2s; margin-right:8px; }
+    .review { background:#4a9eff; color:#fff; }
+    .review:hover { background:#6ab0ff; }
+    .message { margin-top:14px; min-height:20px; color:#f4c9b8; font-size:14px; }
+    .message.success { color:#8fd18f; }
+    .table-container { overflow-x:auto; }
+    .review-form { background:rgba(107,33,168,.3); border:1px solid rgba(212,168,67,.2); border-radius:16px; padding:20px; margin-top:16px; }
+    .review-form h3 { margin-top:0; color:#f0c96a; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; margin-bottom:8px; color:#c2b1f0; font-size:14px; }
+    .form-group input, .form-group textarea, .form-group select { width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:#120b27; color:#fff; font-size:14px; }
+    .form-group textarea { min-height:100px; resize:vertical; }
+    .rating-stars { display:flex; gap:8px; font-size:24px; }
+    .rating-stars label { cursor:pointer; color:#666; transition:color 0.2s; }
+    .rating-stars input[type="radio"] { display:none; }
+    .rating-stars input[type="radio"]:checked ~ label { color:#f0c96a; }
+    .rating-stars label:hover, .rating-stars label:hover ~ label { color:#f0c96a; }
+    .nav-button { display:inline-flex; align-items:center; padding:8px 14px; border-radius:10px; text-decoration:none; font-size:0.85rem; font-weight:500; transition:all 0.2s; border:1px solid transparent; }
+    .site-button { background:rgba(255,255,255,0.1); color:#f0c96a; border-color:rgba(240,201,106,0.3); }
+    .site-button:hover { background:rgba(240,201,106,0.15); border-color:rgba(240,201,106,0.5); transform:translateY(-1px); }
+    .logout-button { background:rgba(242,90,115,0.2); color:#f25a73; border-color:rgba(242,90,115,0.4); }
+    .logout-button:hover { background:rgba(242,90,115,0.3); border-color:rgba(242,90,115,0.6); transform:translateY(-1px); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Contul Meu - Astro Tarot</h1>
+    <div>
+      <a href="/index.html" class="nav-button site-button">← Site</a>
+      <span class="user-info" id="userInfo">Bun venit!</span>
+      <button class="nav-button logout-button" id="logoutButton">Deloghează</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="current">Rezervări Curente</button>
+        <button class="tab" data-tab="past">Rezervări Trecute</button>
+        <button class="tab" data-tab="reviews">Recenziile Mele</button>
+      </div>
+
+      <!-- Current Bookings Tab -->
+      <div class="tab-content active" id="current-tab">
+        <h2>Rezervările Mele Curente și Viitoare</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Data</th><th>Ora</th><th>Status</th><th>Note</th><th>Acțiuni</th></tr>
+            </thead>
+            <tbody id="currentBookingsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Past Bookings Tab -->
+      <div class="tab-content" id="past-tab">
+        <h2>Rezervările Mele Trecute</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Data</th><th>Ora</th><th>Status</th><th>Note</th><th>Recenzie</th></tr>
+            </thead>
+            <tbody id="pastBookingsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Reviews Tab -->
+      <div class="tab-content" id="reviews-tab">
+        <h2>Recenziile Mele</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>Data</th><th>Rezervare</th><th>Rating</th><th>Recenzie</th></tr>
+            </thead>
+            <tbody id="reviewsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" id="reviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+    <div class="modal" style="background:rgba(24,15,37,.96); border:1px solid rgba(212,168,67,.3); border-radius:22px; padding:32px; max-width:500px; width:90%;">
+      <button class="small-button danger" style="float:right;" onclick="closeReviewModal()">✕</button>
+      <h3 style="color:#f0c96a; margin-top:0;">Lasă o Recenzie</h3>
+      <form id="reviewForm">
+        <div class="form-group">
+          <label>Rating</label>
+          <div class="rating-stars">
+            <input type="radio" id="star5" name="rating" value="5" required>
+            <label for="star5">★</label>
+            <input type="radio" id="star4" name="rating" value="4">
+            <label for="star4">★</label>
+            <input type="radio" id="star3" name="rating" value="3">
+            <label for="star3">★</label>
+            <input type="radio" id="star2" name="rating" value="2">
+            <label for="star2">★</label>
+            <input type="radio" id="star1" name="rating" value="1">
+            <label for="star1">★</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reviewText">Recenzia ta</label>
+          <textarea id="reviewText" name="reviewText" placeholder="Împărtășește experiența ta..."></textarea>
+        </div>
+        <button type="submit" class="button">Trimite Recenzia</button>
+      </form>
+      <div class="message" id="reviewMessage"></div>
+    </div>
+  </div>
+
+  <script src="js/user_dashboard.js"></script>
+</body>
+</html>

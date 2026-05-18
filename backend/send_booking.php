@@ -134,7 +134,30 @@ $safeNotes = htmlspecialchars($notes, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $bookingId = null;
 try {
     $bookingsApi = new BookingsAPI();
+
+    // Check for time slot conflicts
+    $bookingDate = $data['booking_date'] ?? null;
+    if (!$bookingsApi->isTimeSlotAvailable($preferredTime, $bookingDate)) {
+        http_response_code(409);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Acest interval orar nu este disponibil. Te rugăm să alegi un alt interval (diferență de minim 1.5 ore).'
+        ]);
+        exit;
+    }
+
+    // Check if user is logged in and link booking to user account
+    $userId = null;
+    $currentUser = Auth::currentUser();
+    if ($currentUser !== null) {
+        $userId = $currentUser['id'];
+        // Use logged-in user's data
+        $name = $currentUser['name'] ?? $name;
+        $email = $currentUser['email'];
+    }
+
     $bookingId = $bookingsApi->createBooking([
+        'user_id' => $userId,
         'name' => $name,
         'email' => $email,
         'preferred_time' => $preferredTime,
@@ -160,7 +183,7 @@ $htmlBody = '<!DOCTYPE html>' .
     '<style>' .
     'body { font-family: Arial, sans-serif; color: #333; background: #f3f0eb; margin: 0; padding: 0; }' .
     '.container { max-width: 620px; margin: 0 auto; padding: 24px; }' .
-    '.card { background: #ffffff; border-radius: 18px; box-shadow: 0 16px 32px rgba(0,0,0,0.08); overflow: hidden; }' .
+    '.card { background: #ffffff; border-radius: 18px; box-shadow: 0 16px 32px rgba(0,0,0,.08); overflow: hidden; }' .
     '.card-header { background: #5f2b8a; color: #fff; padding: 28px 24px; text-align: center; }' .
     '.card-body { padding: 24px; }' .
     '.details { width: 100%; border-collapse: collapse; margin-top: 18px; }' .
@@ -168,6 +191,7 @@ $htmlBody = '<!DOCTYPE html>' .
     '.details .label { color: #6c4c86; width: 38%; font-weight: 700; }' .
     '.details .value { color: #444; }' .
     '.footer { margin-top: 24px; font-size: 0.95rem; color: #6e6b70; }' .
+    '.btn { display: inline-block; padding: 12px 24px; background: #c084fc; color: #fff; text-decoration: none; border-radius: 8px; margin-top: 16px; }' .
     '</style>' .
     '</head>' .
     '<body>' .
@@ -187,10 +211,12 @@ $htmlBody = '<!DOCTYPE html>' .
     '<tr><td class="label">Status</td><td class="value">Pending</td></tr>' .
     '</table>' .
     ($safeNotes !== '' ? '<p><strong>Întrebare / intenție:</strong><br>' . nl2br($safeNotes) . '</p>' : '') .
-    '<div class="footer">' .
-    '<p>Pentru orice întrebări, răspunde la acest email sau așteaptă confirmarea noastră.</p>' .
-    '<p>Cu drag,<br>Astro Tarot</p>' .
+    '<div style="text-align: center; margin-top: 20px;">' .
+    '<a href="https://' . $_SERVER['HTTP_HOST'] . '/user_profile.html" class="btn">Vezi Detaliile Rezervării</a>' .
     '</div>' .
+    '<div class="footer">' .
+    '<p>Pentru orice întrebări, răspunde la acest email sau accesează profilul tău pentru a vedea toate rezervările.</p>' .
+    '<p>Cu drag,<br>Astro Tarot</p>' .
     '</div>' .
     '</div>' .
     '</div>' .
